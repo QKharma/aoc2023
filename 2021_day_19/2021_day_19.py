@@ -16,17 +16,24 @@ class Beacon():
 
 class Scanner():
 
-    def __init__(self, scanner_id, beacons, rel_pos=None):
+    def __init__(self, scanner_id, beacons, parent=None, children=None):
         self.id = scanner_id
 
         self.x = 0
         self.y = 0
         self.z = 0
 
-        self.parent = None
-        self.children = []
+        if not parent:
+            self.parent = None
+        else:
+            self.parent = parent
+
+        if not children:
+            self.children = []
+        else:
+            self.children = children
+
         self.beacons = []
-        self.relative_positions = []
 
         if type(beacons[0]) == Beacon:
             for beacon in beacons:
@@ -35,19 +42,19 @@ class Scanner():
             for beacon in beacons:
                 self.beacons.append(Beacon(beacon))
 
-        if not rel_pos:
-            self.calc_relative_positions()
+        self.calc_relative_positions()
+        
 
     def __str__(self):
-        return 'id: {}, pos: {},{},{}, parent: {}, children: {}, beacons: {}\n'.format(
+        return 'id: {}, pos: {},{},{}, parent: {}, children: {}, beacons: {}'.format(
             self.id, self.x, self.y, self.z, self.parent, self.children, self.beacons)
 
     def __repr__(self):
-        return 'id: {}, pos: {},{},{}, parent: {}, children: {}, beacons: {}\n'.format(
+        return 'id: {}, pos: {},{},{}, parent: {}, children: {}, beacons: {}'.format(
             self.id, self.x, self.y, self.z, self.parent, self.children, self.beacons)
 
     def __copy__(self):
-        return Scanner(self.id, self.beacons, rel_pos=self.relative_positions)
+        return Scanner(self.id, self.beacons, parent=self.parent, children=self.children)
 
     def calc_relative_positions(self):
         self.relative_positions = []
@@ -140,10 +147,12 @@ class ScannerTree():
         self.build_tree()
 
     def __str__(self):
+        output = ''
         for scanner in self.scanners:
-            print(scanner)
+            output += '{}\n\n'.format(scanner)
+        return output
 
-    def compare_scanners(self, s_1: Scanner, s_2: Scanner):
+    def compare_scanners(self, s_1: Scanner, s_2: Scanner, s_original=None):
 
         matching_beacons = set()
 
@@ -154,22 +163,30 @@ class ScannerTree():
                 if p_1[0] == p_2[0]:
                     matching_beacons.add(p_1[1])
                     matching_beacons.add(p_1[2])
+                    print(len(matching_beacons))
                 if len(matching_beacons) == 12:
                     s_2.set_parent(s_1.id)
-                    s_1.add_child(s_2.id)
+                    if s_original:
+                        s_original.add_child(s_2.id)
+                    else:
+                        s_1.add_child(s_2.id)
                     return True
         return False
+
+    def check_potential_child(self, potential_child, next_scanners_to_check):
+            print(next_scanners_to_check[0].id, potential_child.id)
+            for idx, rotation in enumerate(next_scanners_to_check[0].get_all_rotations()):
+                parent_found = self.compare_scanners(rotation, potential_child, s_original=next_scanners_to_check[0])
+                if parent_found:
+                    next_scanners_to_check.append(potential_child)
+                    return
     
     def build_tree(self):
         next_scanners_to_check = [self.root]
         while next_scanners_to_check:
-            for idx, rotation in enumerate(next_scanners_to_check[0].get_all_rotations()):
-                for potential_child in self.scanners:
-                    if potential_child.parent == None and potential_child not in next_scanners_to_check:
-                        parent_found = self.compare_scanners(rotation, potential_child)
-                        if parent_found:
-                            next_scanners_to_check.append(potential_child)
-                            continue
+            for potential_child in self.scanners:
+                if potential_child.parent == None and potential_child not in next_scanners_to_check and potential_child.id != 0:
+                    self.check_potential_child(potential_child, next_scanners_to_check)
             next_scanners_to_check.pop(0)
 
 

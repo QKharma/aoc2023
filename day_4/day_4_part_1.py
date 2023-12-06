@@ -1,7 +1,6 @@
 file = []
 with open('day_4_input.txt') as f:
-    file = f.read()
-file = file.split('\n')
+    file = [line.strip() for line in f.readlines()]
 
 result = 0
 
