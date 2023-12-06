@@ -1,3 +1,6 @@
+from datetime import datetime
+startTime = datetime.now()
+
 file = []
 with open('day_5_input.txt') as f:
     file = [line.strip() for line in f.readlines() if line.strip() != '']
@@ -50,5 +53,5 @@ for i in range(len(tables)):
     seed_ranges = seed_ranges + new_seed_ranges
                 
 print(min([x[0] for x in seed_ranges]))
-
+print(datetime.now() - startTime)
 
