@@ -1,4 +1,8 @@
+from datetime import datetime
+startTime = datetime.now()
+
 from functools import reduce
+import math
 
 file = []
 with open('day_6_input.txt') as f:
@@ -6,17 +10,20 @@ with open('day_6_input.txt') as f:
 
 race = [int(''.join(x.split(':')[1].strip().split(' '))) for x in file]
 
-print(race)
-
 result = []
 
-race[1] = i*(race[0]-i)
-
 possible_durations = []
-for i in range(race[0]+1):
+
+for i in range(race[0], 0, -1):
     if race[1] < i*(race[0]-i):
         possible_durations.append(i)
+        break
 
-result.append(len(possible_durations))
+for i in range(race[0]):
+    if race[1] < i*(race[0]-i):
+        possible_durations.append(i)
+        break
 
-print(reduce(lambda x, y: x * y, result))
+
+print(len(range(possible_durations[1], possible_durations[0])) + 1)
+print(datetime.now() - startTime)
